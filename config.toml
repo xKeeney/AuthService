@@ -1,0 +1,26 @@
+[logger]
+log_file = "app.log"
+log_level = "trace"
+
+[server]
+name = "auth-service"
+env = "production"
+host = "0.0.0.0"
+port = "8080"
+
+read_timeout = "5s"
+write_timeout = "10s"
+idle_timeout = "60s"
+
+[database]
+driver = "postgres"
+host = "127.0.0.1"
+port = "5432"
+name = "auth_service"
+user = "auth_service"
+password = "auth_service"
+
+ssl_mode = "require"
+max_open_conns = 25
+max_idle_conns = 10
+conn_max_lifetime = "30s"

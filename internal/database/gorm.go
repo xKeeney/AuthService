@@ -17,11 +17,11 @@ func InitGormPostgresql(host, user, password, dbname, port string) (*gorm.DB, er
 
 func StartMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(
-		&Users{},
-		&Roles{},
-		&Permissions{},
-		&RolePermissions{},
-		&UserRoles{},
-		&RefreshTokens{},
+		&User{},
+		&Role{},
+		&Permission{},
+		&RolePermission{},
+		&UserRole{},
+		&RefreshToken{},
 	)
 }
