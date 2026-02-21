@@ -1,0 +1,15 @@
+INFO:  2026/02/21 01:03:22 Logger started with log_level='TRACE'
+LOG: 2026/02/21 01:03:22 [INFO]	Server starting...
+LOG: 2026/02/21 01:03:22 [INFO]	Server started at ":8080"
+LOG: 2026/02/21 01:04:50 [INFO:RECIVE]    [::1]:54168 - "GET /ysa"
+TRACE: 2026/02/21 01:04:50 Request details:
+Method: GET
+Path: /ysa
+Body: 
+LOG: 2026/02/21 01:04:50 [INFO:COMPLETE]  [::1]:54168 - "GET /ysa" in 110.426µs
+LOG: 2026/02/21 01:04:50 [INFO:RECIVE]    [::1]:54168 - "GET /favicon.ico"
+TRACE: 2026/02/21 01:04:50 Request details:
+Method: GET
+Path: /favicon.ico
+Body: 
+LOG: 2026/02/21 01:04:50 [INFO:COMPLETE]  [::1]:54168 - "GET /favicon.ico" in 260.277µs
