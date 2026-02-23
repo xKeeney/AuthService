@@ -3,6 +3,7 @@ package cmd
 import (
 	"auth_service/internal/config"
 	"auth_service/internal/database"
+	"auth_service/internal/router"
 	"fmt"
 	"log"
 
@@ -47,6 +48,9 @@ func StartServer() {
 
 	app.AddMiddleware(baseMiddlewares.InfoMiddleware)
 	app.AddMiddleware(baseMiddlewares.RequestsLoggerMiddleware)
+
+	// Add routes
+	router.AddRoutes(app, db, appLogger)
 
 	// Start server
 	app.ListenAndServe()
