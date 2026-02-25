@@ -2,13 +2,11 @@ package auth
 
 import (
 	"auth_service/internal/database"
+	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
-
-type authRepo interface {
-	CreateUser(uuid, email, passwordHash, status string) error
-}
 
 type authRepository struct {
 	db *gorm.DB
@@ -27,5 +25,20 @@ func (r *authRepository) CreateUser(uuid, email, passwordHash, status string) er
 		PasswordHash: passwordHash,
 		Status:       status,
 	}
-	return r.db.Create(&user).Error
+	if err := r.db.Create(&user).Error; err != nil {
+		return fmt.Errorf("create_user(%s) error: %v", email, err)
+	}
+	return nil
+}
+
+func (r *authRepository) SelectUserByEmail(email string) (*database.User, error) {
+	var user database.User
+	if err := r.db.First(&user, "email = ?", email).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, fmt.Errorf("select_user_by_email(%s) error: %v", email, err)
+		}
+	}
+	return &user, nil
 }
