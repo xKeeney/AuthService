@@ -57,7 +57,3 @@ func (s *authService) RegisterUser(email, password string) (bool, error) {
 
 	return true, nil
 }
-
-func (s *authService) CreateUser(uuid, email, passwordHash, status string) error {
-	return s.authRepo.CreateUser(uuid, email, passwordHash, status)
-}

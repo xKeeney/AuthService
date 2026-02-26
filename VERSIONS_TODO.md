@@ -1,15 +1,27 @@
-# Future features
-- [ ] Audit log database (register / login / logout / refresh / revoke)
-- [ ] Secutity event if refresh with already revoked token | AuditLog first
+# Future features for v1.0.0
 - [ ] WebUI (client)
 - [ ] Roles + permissions (admin / user / support / service) | WebUI first
 - [ ] Service administration | WebUI first.
 - [ ] Maintenance mode (middleware that dont allow new connections in maintenance mode)
-- [ ] Update mode (migrations + associations)
+- [ ] Update mode (associations) | associations after roles + permissions
+- [ ] Create admin user in first run (if no admin)
 
-# v0.1.0
-- [ ] JWT tokens logic (RS256 algorithm, refresh tokens can be used only one time)
-- [ ] **Register** endpoint
-- [ ] **Login** endpoint
-- [ ] **Refresh** endpoint
-- [ ] **Logout** endpoint
+# v0.3.0 AuditLog
+- [ ] Add audit log (database + logic)
+- [ ] Register audit log
+- [ ] Login audit log
+- [ ] Logout audit log
+- [ ] Refresh audit log
+- [ ] Revoke audit log
+- [ ] Security event if refresh with revoked token
+
+# v0.2.0 UpdateMode
+- [ ] Add update mode
+- [ ] Add migrations in update mode
+
+# v0.1.0 MVP
+- [x] add **Register** endpoint + logic | __26.02.2026__
+- [ ] add JWT tokens logic (RS256 algorithm, refresh tokens can be used only one time)
+- [ ] add **Login** endpoint + logic
+- [ ] add **Refresh** endpoint + logic
+- [ ] add **Logout** endpoint + logic
