@@ -18,4 +18,5 @@ func AddRoutes(app *httpForge.HttpApp, db *gorm.DB, appLogger *httpLogger.HttpLo
 	auth := app.NewRouter("/auth")
 
 	auth.Post("/register", authHandler.Register)
+	auth.Post("/login", authHandler.Login)
 }

@@ -1,4 +1,4 @@
-# Future features for v1.0.0
+# Future features (road to v1.0.0)
 - [ ] WebUI (client)
 - [ ] Roles + permissions (admin / user / support / service) | WebUI first
 - [ ] Service administration | WebUI first.
@@ -22,6 +22,10 @@
 # v0.1.0 MVP
 - [x] add **Register** endpoint + logic | __26.02.2026__
 - [ ] add JWT tokens logic (RS256 algorithm, refresh tokens can be used only one time)
+    - [x] Access tokens | __28.02.2026__
+    - [ ] Refresh tokens
 - [ ] add **Login** endpoint + logic
+    - [x] Return access token | __28.02.2026__
+    - [ ] Add refresh token in cookie
 - [ ] add **Refresh** endpoint + logic
 - [ ] add **Logout** endpoint + logic
