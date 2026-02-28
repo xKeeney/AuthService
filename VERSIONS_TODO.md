@@ -25,8 +25,8 @@
 - [ ] add JWT tokens logic (RS256 algorithm, refresh tokens can be used only one time)
     - [x] Access tokens | __28.02.2026__
     - [ ] Refresh tokens
-- [ ] add **Login** endpoint + logic
+- [x] add **Login** endpoint + logic __28.02.2026__
     - [x] Return access token | __28.02.2026__
-    - [ ] Add refresh token in cookie
+    - [x] Add refresh token in cookie __28.02.2026__
 - [ ] add **Refresh** endpoint + logic
 - [ ] add **Logout** endpoint + logic

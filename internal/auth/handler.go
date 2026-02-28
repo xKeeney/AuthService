@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/xKeeney/httpForge/httpData"
 	"github.com/xKeeney/httpForge/httpLogger"
@@ -86,7 +87,8 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := h.authService.LoginUser(req.Email, req.Password)
+	// login with errors
+	accessToken, refreshToken, err := h.authService.LoginUser(req.Email, req.Password)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrUserNotFound):
@@ -108,8 +110,38 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// set cookie
+	cookie := &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Expires:  time.Now().Add(360 * time.Hour), // срок действия
+		HttpOnly: true,                            // запрет доступа из JS
+		Secure:   false,                           // передавать только по HTTPS (рекомендуется)
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode, // дополнительная защита
+	}
+
+	http.SetCookie(w, cookie)
+
 	resp := LoginResponse{
 		AccessToken: accessToken,
 	}
 	httpData.ResponseJSON(w, resp, http.StatusOK)
+}
+
+func (h *authHandler) ReadRefreshToken(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		switch err {
+		case http.ErrNoCookie:
+			http.Error(w, "Cookie не найден", http.StatusBadRequest)
+		default:
+			http.Error(w, "Ошибка чтения cookie", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Используем значение cookie
+	value := cookie.Value
+	w.Write([]byte("Значение cookie: " + value))
 }

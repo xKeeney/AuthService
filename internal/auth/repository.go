@@ -4,6 +4,7 @@ import (
 	"auth_service/internal/database"
 	"errors"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -41,4 +42,18 @@ func (r *authRepository) SelectUserByEmail(email string) (*database.User, error)
 		}
 	}
 	return &user, nil
+}
+
+func (r *authRepository) CreateRefreshToken(uuid, userUUID, tokenHash string, parentUUID *string, expiresAt time.Time) error {
+	refresh := database.RefreshToken{
+		UUID:       uuid,
+		UserUUID:   userUUID,
+		TokenHash:  tokenHash,
+		ParentUUID: parentUUID,
+		ExpiresAt:  expiresAt,
+	}
+	if err := r.db.Create(&refresh).Error; err != nil {
+		return fmt.Errorf("create_refresh_token(userUUID='%s') error: %v", userUUID, err)
+	}
+	return nil
 }
