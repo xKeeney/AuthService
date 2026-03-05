@@ -103,7 +103,7 @@ func (s *authService) validateJWT(tokenString string, publicKey *rsa.PublicKey) 
 		return claims, nil
 	}
 
-	return nil, ErrInvalidToken
+	return nil, ErrInvalidAccessToken
 }
 
 // Get expired JWT claims
@@ -121,7 +121,7 @@ func (s *authService) parseExpiredJWT(tokenString string, publicKey *rsa.PublicK
 		return claims, nil
 	}
 
-	return nil, ErrInvalidToken
+	return nil, ErrInvalidAccessToken
 }
 
 func (s *authService) generateRefreshToken(length int) (string, error) {
@@ -208,7 +208,7 @@ func (s *authService) LoginUser(email, password string) (string, string, error) 
 	// load jwt private key
 	privKey, err := s.loadPrivateKey("private.pem")
 	if err != nil {
-		return "", "", fmt.Errorf("login_user(%s) error: %v", email, err)
+		return "", "", ErrLoadPrivateKey
 	}
 
 	// create access_token
@@ -236,4 +236,78 @@ func (s *authService) LoginUser(email, password string) (string, string, error) 
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func (s *authService) LogoutUser(refreshToken string) error {
+	tokenHash := s.hashRefreshToken(refreshToken)
+	if err := s.authRepo.DeleteRefreshTokenByTokenHash(tokenHash); err != nil {
+		return fmt.Errorf("logout_user error: %v", err)
+	}
+	return nil
+}
+
+func (s *authService) Refresh(accessToken, refreshToken string) (string, string, error) {
+	// Read claims (for userUUID) from access_token
+	publicKey, err := s.loadPublicKey("public.pem")
+	if err != nil {
+		return "", "", ErrLoadPublicKey
+	}
+
+	privKey, err := s.loadPrivateKey("private.pem")
+	if err != nil {
+		return "", "", ErrLoadPrivateKey
+	}
+
+	oldClaims, err := s.parseExpiredJWT(accessToken, publicKey)
+	if err != nil {
+		return "", "", ErrParseJWT
+	}
+
+	// Export refresh token data
+	tokenHash := s.hashRefreshToken(refreshToken)
+	oldRefreshTokenData, err := s.authRepo.SelectRefreshTokenByTokenHash(tokenHash)
+	if err != nil {
+		return "", "", ErrInvalidRefreshToken
+	}
+
+	// Validate userUUID
+	if oldClaims.Subject != oldRefreshTokenData.UserUUID {
+		return "", "", ErrInvalidRefreshToken
+	}
+
+	// Validate isRevoked
+	if oldRefreshTokenData.IsRevoked {
+		return "", "", ErrInvalidRefreshToken
+	}
+
+	// Validate ExpTime
+	if oldRefreshTokenData.ExpiresAt.Before(time.Now()) {
+		return "", "", ErrRefreshTokenExp
+	}
+
+	// New refresh token
+	newRefreshToken, err := s.generateRefreshToken(256)
+	if err != nil {
+		return "", "", fmt.Errorf("refresh error: %v", err)
+	}
+
+	// hash refresh token
+	newRefreshTokenHash := s.hashRefreshToken(newRefreshToken)
+
+	// add refresh token to db
+	newRefreshTokenUUID := uuid.NewString()
+	newRefreshTokenTTL := 360 * time.Hour
+	expireTime := time.Now().Add(newRefreshTokenTTL)
+	if err := s.authRepo.CreateRefreshToken(newRefreshTokenUUID, oldClaims.Subject, newRefreshTokenHash, &oldRefreshTokenData.UUID, expireTime); err != nil {
+		return "", "", fmt.Errorf("refresh error: %v", err)
+	}
+
+	// New access token
+	JWTTtl := 15 * time.Minute
+	newAccessToken, err := s.generateJWT(privKey, oldClaims.Subject, JWTTtl)
+	if err != nil {
+		return "", "", fmt.Errorf("refresh error: %v", err)
+	}
+
+	return newAccessToken, newRefreshToken, nil
 }

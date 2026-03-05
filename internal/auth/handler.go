@@ -129,6 +129,39 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	httpData.ResponseJSON(w, resp, http.StatusOK)
 }
 
+func (h *authHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	refreshTokenCookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		switch err {
+		case http.ErrNoCookie:
+			http.Error(w, "Cookie не найден", http.StatusBadRequest)
+		default:
+			http.Error(w, "Ошибка чтения cookie", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	refreshToken := refreshTokenCookie.Value
+	if err := h.authService.LogoutUser(refreshToken); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal server error!"))
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:   "refresh_token",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
+
+	// Response OK
+	w.WriteHeader(http.StatusOK)
+}
+
+// TODO add read access token from auth header
+func (h *authHandler) Refresh(w http.ResponseWriter, r *http.Request) {}
+
 func (h *authHandler) ReadRefreshToken(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {

@@ -57,3 +57,33 @@ func (r *authRepository) CreateRefreshToken(uuid, userUUID, tokenHash string, pa
 	}
 	return nil
 }
+
+func (r *authRepository) DeleteRefreshTokenByTokenHash(tokenHash string) error {
+	if err := r.db.Where("token_hash = ?", tokenHash).Delete(&database.RefreshToken{}).Error; err != nil {
+		return fmt.Errorf("delete_refresh_token_by_token_hash(%s) error: %v", tokenHash, err)
+	}
+	return nil
+}
+
+func (r *authRepository) SelectActiveRefreshTokensByUserUUID(userUUID string) ([]database.RefreshToken, error) {
+	var refreshTokens []database.RefreshToken
+	if err := r.db.Where(&database.RefreshToken{IsRevoked: false, ExpiresAt: time.Now(), UserUUID: userUUID}).Find(&refreshTokens).Error; err != nil {
+		return nil, fmt.Errorf("select_active_refresh_tokens_by_user_uuid(%s) error: %v", userUUID, err)
+	}
+	return refreshTokens, nil
+}
+
+func (r *authRepository) SelectRefreshTokenByTokenHash(tokenHash string) (*database.RefreshToken, error) {
+	var refreshToken database.RefreshToken
+	if err := r.db.Where(&database.RefreshToken{TokenHash: tokenHash}).Find(&refreshToken).Error; err != nil {
+		return nil, fmt.Errorf("select_refresh_tokens_by_token_hash error: %v", err)
+	}
+	return &refreshToken, nil
+}
+
+func (r *authRepository) UpdateRefreshToken(newRefreshToken database.RefreshToken) error {
+	if err := r.db.Save(&newRefreshToken).Error; err != nil {
+		return fmt.Errorf("update_refresh_token(tokenUUID=%s) error: %v", newRefreshToken.UUID, err)
+	}
+	return nil
+}

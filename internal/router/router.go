@@ -19,5 +19,6 @@ func AddRoutes(app *httpForge.HttpApp, db *gorm.DB, appLogger *httpLogger.HttpLo
 
 	auth.Post("/register", authHandler.Register)
 	auth.Post("/login", authHandler.Login)
+	auth.Get("/logout", authHandler.Logout)
 	auth.Get("/test", authHandler.ReadRefreshToken)
 }

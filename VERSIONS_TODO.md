@@ -22,11 +22,11 @@
 # v0.1.0 beta "MVP"
 - [x] add **Register** endpoint + logic | __26.02.2026__
 - [x] Generate Keys for JWT mode | __28.02.2026__
-- [ ] add JWT tokens logic (RS256 algorithm, refresh tokens can be used only one time)
+- [x] add JWT tokens logic (RS256 algorithm, refresh tokens can be used only one time) | __06.03.2026__
     - [x] Access tokens | __28.02.2026__
-    - [ ] Refresh tokens
+    - [x] Refresh tokens | __06.03.2026__
 - [x] add **Login** endpoint + logic __28.02.2026__
     - [x] Return access token | __28.02.2026__
     - [x] Add refresh token in cookie __28.02.2026__
 - [ ] add **Refresh** endpoint + logic
-- [ ] add **Logout** endpoint + logic
+- [x] add **Logout** endpoint + logic | __06.03.2026__
