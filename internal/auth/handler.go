@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/xKeeney/httpForge/httpData"
@@ -159,22 +160,73 @@ func (h *authHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// TODO add read access token from auth header
-func (h *authHandler) Refresh(w http.ResponseWriter, r *http.Request) {}
-
-func (h *authHandler) ReadRefreshToken(w http.ResponseWriter, r *http.Request) {
+func (h *authHandler) Refresh(w http.ResponseWriter, r *http.Request) {
+	// Read refresh token from cookie
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
 		switch err {
 		case http.ErrNoCookie:
-			http.Error(w, "Cookie не найден", http.StatusBadRequest)
+			http.Error(w, "Cookie not found", http.StatusBadRequest)
 		default:
-			http.Error(w, "Ошибка чтения cookie", http.StatusInternalServerError)
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		}
+		return
+	}
+	refreshToken := cookie.Value
+
+	// Read access_token from headers
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "authorization header missing", http.StatusBadRequest)
+		return
+	}
+
+	// Split auth schema and token from header
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+		http.Error(w, "invalid authorization header format, expected 'Bearer <token>'", http.StatusBadRequest)
+		return
+	}
+	accessToken := parts[1]
+
+	// Refresh logic
+	newAccessToken, newRefreshToken, err := h.authService.Refresh(accessToken, refreshToken)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrLoadPublicKey):
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		case errors.Is(err, ErrLoadPrivateKey):
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+		case errors.Is(err, ErrParseJWT):
+			http.Error(w, "Bad request.", http.StatusBadRequest)
+		case errors.Is(err, ErrInvalidRefreshToken):
+			http.Error(w, "Bad request.", http.StatusBadRequest)
+		case errors.Is(err, ErrRefreshTokenExp):
+			http.Error(w, "Bad request.", http.StatusBadRequest)
+		default:
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
 		}
 		return
 	}
 
-	// Используем значение cookie
-	value := cookie.Value
-	w.Write([]byte("Значение cookie: " + value))
+	// set cookie
+	newCookie := &http.Cookie{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		Expires:  time.Now().Add(360 * time.Hour), // срок действия
+		HttpOnly: true,                            // запрет доступа из JS
+		Secure:   false,                           // передавать только по HTTPS (рекомендуется)
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode, // дополнительная защита
+	}
+
+	http.SetCookie(w, newCookie)
+
+	// set response
+	resp := LoginResponse{
+		AccessToken: newAccessToken,
+	}
+
+	// send response
+	httpData.ResponseJSON(w, resp, http.StatusOK)
 }

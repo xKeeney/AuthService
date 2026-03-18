@@ -18,6 +18,7 @@
 # v0.2.0 beta "UpdateMode"
 - [ ] Add update mode
 - [ ] Add migrations in update mode
+- [ ] Add logs logic
 
 # v0.1.0 beta "MVP"
 - [x] add **Register** endpoint + logic | __26.02.2026__
@@ -28,5 +29,5 @@
 - [x] add **Login** endpoint + logic __28.02.2026__
     - [x] Return access token | __28.02.2026__
     - [x] Add refresh token in cookie __28.02.2026__
-- [ ] add **Refresh** endpoint + logic
+- [x] add **Refresh** endpoint + logic
 - [x] add **Logout** endpoint + logic | __06.03.2026__
