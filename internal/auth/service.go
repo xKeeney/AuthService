@@ -247,17 +247,19 @@ func (s *authService) LogoutUser(refreshToken string) error {
 }
 
 func (s *authService) Refresh(accessToken, refreshToken string) (string, string, error) {
-	// Read claims (for userUUID) from access_token
+	// Read public key from file
 	publicKey, err := s.loadPublicKey("public.pem")
 	if err != nil {
 		return "", "", ErrLoadPublicKey
 	}
 
+	// Read private key from file
 	privKey, err := s.loadPrivateKey("private.pem")
 	if err != nil {
 		return "", "", ErrLoadPrivateKey
 	}
 
+	// Read claims from old access_token
 	oldClaims, err := s.parseExpiredJWT(accessToken, publicKey)
 	if err != nil {
 		return "", "", ErrParseJWT
