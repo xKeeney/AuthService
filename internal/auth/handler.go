@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/xKeeney/httpForge/httpData"
@@ -174,23 +173,8 @@ func (h *authHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 	refreshToken := cookie.Value
 
-	// Read access_token from headers
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "authorization header missing", http.StatusBadRequest)
-		return
-	}
-
-	// Split auth schema and token from header
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-		http.Error(w, "invalid authorization header format, expected 'Bearer <token>'", http.StatusBadRequest)
-		return
-	}
-	accessToken := parts[1]
-
 	// Refresh logic
-	newAccessToken, newRefreshToken, err := h.authService.Refresh(accessToken, refreshToken)
+	newAccessToken, newRefreshToken, err := h.authService.Refresh(refreshToken)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrLoadPublicKey):
