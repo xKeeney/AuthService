@@ -246,34 +246,17 @@ func (s *authService) LogoutUser(refreshToken string) error {
 	return nil
 }
 
-func (s *authService) Refresh(accessToken, refreshToken string) (string, string, error) {
-	// Read public key from file
-	publicKey, err := s.loadPublicKey("public.pem")
-	if err != nil {
-		return "", "", ErrLoadPublicKey
-	}
-
+func (s *authService) Refresh(refreshToken string) (string, string, error) {
 	// Read private key from file
 	privKey, err := s.loadPrivateKey("private.pem")
 	if err != nil {
 		return "", "", ErrLoadPrivateKey
 	}
 
-	// Read claims from old access_token
-	oldClaims, err := s.parseExpiredJWT(accessToken, publicKey)
-	if err != nil {
-		return "", "", ErrParseJWT
-	}
-
 	// Export refresh token data
 	tokenHash := s.hashRefreshToken(refreshToken)
 	oldRefreshTokenData, err := s.authRepo.SelectRefreshTokenByTokenHash(tokenHash)
 	if err != nil {
-		return "", "", ErrInvalidRefreshToken
-	}
-
-	// Validate userUUID
-	if oldClaims.Subject != oldRefreshTokenData.UserUUID {
 		return "", "", ErrInvalidRefreshToken
 	}
 
@@ -300,13 +283,13 @@ func (s *authService) Refresh(accessToken, refreshToken string) (string, string,
 	newRefreshTokenUUID := uuid.NewString()
 	newRefreshTokenTTL := 360 * time.Hour
 	expireTime := time.Now().Add(newRefreshTokenTTL)
-	if err := s.authRepo.CreateRefreshToken(newRefreshTokenUUID, oldClaims.Subject, newRefreshTokenHash, &oldRefreshTokenData.UUID, expireTime); err != nil {
+	if err := s.authRepo.CreateRefreshToken(newRefreshTokenUUID, oldRefreshTokenData.UserUUID, newRefreshTokenHash, &oldRefreshTokenData.UUID, expireTime); err != nil {
 		return "", "", fmt.Errorf("refresh error: %v", err)
 	}
 
 	// New access token
 	JWTTtl := 15 * time.Minute
-	newAccessToken, err := s.generateJWT(privKey, oldClaims.Subject, JWTTtl)
+	newAccessToken, err := s.generateJWT(privKey, oldRefreshTokenData.UserUUID, JWTTtl)
 	if err != nil {
 		return "", "", fmt.Errorf("refresh error: %v", err)
 	}
