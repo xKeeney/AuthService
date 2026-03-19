@@ -19,6 +19,7 @@ coverage.*
 profile.cov
 *.log
 *.pem
+*.tar.gz
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

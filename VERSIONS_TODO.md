@@ -5,6 +5,8 @@
 - [ ] Maintenance mode (middleware that dont allow new connections in maintenance mode)
 - [ ] Update mode (associations) | associations after roles + permissions
 - [ ] Create admin user in first run (if no admin)
+- [ ] Daily logs rotation
+- [ ] Archive old logs
 
 # v0.3.0 beta "AuditLog"
 - [ ] Add audit log (database + logic)

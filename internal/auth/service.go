@@ -267,6 +267,8 @@ func (s *authService) Refresh(refreshToken string) (string, string, error) {
 
 	// Validate ExpTime
 	if oldRefreshTokenData.ExpiresAt.Before(time.Now()) {
+		oldRefreshTokenData.IsRevoked = true
+		s.authRepo.UpdateRefreshToken(*oldRefreshTokenData)
 		return "", "", ErrRefreshTokenExp
 	}
 
@@ -286,6 +288,10 @@ func (s *authService) Refresh(refreshToken string) (string, string, error) {
 	if err := s.authRepo.CreateRefreshToken(newRefreshTokenUUID, oldRefreshTokenData.UserUUID, newRefreshTokenHash, &oldRefreshTokenData.UUID, expireTime); err != nil {
 		return "", "", fmt.Errorf("refresh error: %v", err)
 	}
+
+	// Make old refresh token expired
+	oldRefreshTokenData.IsRevoked = true
+	s.authRepo.UpdateRefreshToken(*oldRefreshTokenData)
 
 	// New access token
 	JWTTtl := 15 * time.Minute
